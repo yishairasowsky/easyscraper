@@ -1,18 +1,26 @@
+import sys
+import spacy
 import requests  
+import numpy
 import matplotlib.pyplot as plt
 
 from io import BytesIO
 from PIL import Image
-from bs4 import BeautifulSoup  
+from bs4 import BeautifulSoup
+from spacy.lang.en import English
+from textblob import TextBlob
 
+story = """
+A man went to the store. He bought some milk and eggs. He brought them to his car. He drove to his house.
+"""
 
-search_words = [
-                # '',
-                'chazonish',
-                # 'yishairasowsky',
-                ]    
+blob = TextBlob(story)
 
-num_imgs = 5
+my_nouns = [token[0] for token in blob.tags if token[1]=='NN']
+
+search_words = my_nouns
+
+num_imgs = 3
 
 for search_word in search_words:
 
