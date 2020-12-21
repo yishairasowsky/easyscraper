@@ -25,9 +25,14 @@ class WordManager:
 
   def get_nouns(self):
     self.noun_lists = []
+
+    sentences = self.story.split('.')
+
+    for sentence in sentences:
+
     chunks = []
     remainder = self.story
-    chunk_chars = 60
+    chunk_chars = 50
     while len(remainder) > chunk_chars:
         chunk = remainder[0:chunk_chars]
         last_space = chunk.rfind(' ')
@@ -55,27 +60,32 @@ class PictureManager:
     self.num_imgs = num_imgs
     self.word_lists = word_lists
 
-  def save_img(self,search_word,img_idx,img_url,sentence, sentence_idx):
+  def save_img(self,sentence, sentence_idx,search_word=None,img_idx=None,img_url=None):
     text = sentence
     response = None
+    img = None
     try:
-      response = requests.get(img_url)
-      img = Image.open(BytesIO(response.content))
+      if img_url:
+        response = requests.get(img_url)
+        img = Image.open(BytesIO(response.content))
+      else:
+        img = Image.open('black_bkgd.jpg')
+
       width, height = img.size
       draw = ImageDraw.Draw(img)
       font = ImageFont.truetype("arial.ttf", 12)
 
       text_width, text_height = font.getsize(text)
       image_width, image_height = (width, height)
-      left_edge = image_width - 1.0*text_width - 5
-      right_edge = image_width - 0.0*text_width + 5, # right side, more positive farther right
+      left_edge = image_width - 1.0*text_width - 10
+      right_edge = image_width - 0.0*text_width + 10 # right side, more positive farther right
       draw.rectangle((
           left_edge,
           image_height, 
           right_edge,
           image_height - text_height
           ), fill='white')
-      draw.text((left_edge, image_height - text_height), text, fill=(0, 0, 0), font=font)
+      draw.text((left_edge + 5, image_height - text_height), text, fill=(0, 0, 0), font=font)
 
       img.save(f'imgs/phrase_{sentence_idx}_word_{search_word}_{img_idx}.png')
 
@@ -102,7 +112,7 @@ class PictureManager:
 
   def get_html(self,search_word):
 
-      search_url = f'https://images.search.yahoo.com/search/images;_ylt=AwrExdrB_MlfwyYAsv6LuLkF;_ylc=X1MDOTYwNTc0ODMEX3IDMgRmcgMEZ3ByaWQDc0cuQS5iMU9ScGl0aVlTNFlUUnBrQQRuX3N1Z2cDMTAEb3JpZ2luA2ltYWdlcy5zZWFyY2gueWFob28uY29tBHBvcwMwBHBxc3RyAwRwcXN0cmwDBHFzdHJsAzYEcXVlcnkDcmFtYmFuBHRfc3RtcAMxNjA3MDcyOTY2?fr2=sb-top-images.search&p={search_word}&ei=UTF-8&iscqry=&fr=sfp'
+      search_url = f'https://images.search.yahoo.com/search/images;_ylt=A?p={search_word}+icon&ei=UTF-8&fr=sfp&imgsz=large'
 
       htmldata = ''
 
@@ -134,6 +144,8 @@ class PictureManager:
 
       sentence = sentence_tuple[0]
 
+      self.save_img(sentence=sentence,sentence_idx=sentence_idx)
+
       word_list = sentence_tuple[1]
 
       for search_word in word_list:
@@ -144,7 +156,7 @@ class PictureManager:
 
         for img_idx,img_url in enumerate(self.img_urls[:self.num_imgs]):
             
-            self.save_img(search_word,img_idx,img_url, sentence, sentence_idx)
+            self.save_img(search_word=search_word,img_idx=img_idx,img_url=img_url, sentence=sentence, sentence_idx=sentence_idx)
 
 
 
